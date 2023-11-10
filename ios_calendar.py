@@ -2,7 +2,7 @@
 
 from pyicloud import PyiCloudService
 from pyicloud.exceptions import PyiCloudFailedLoginException, PyiCloudNoDevicesException
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 
 username = 'kapahgaiii7@yandex.ru'
 password = 'F4ck_Army'
@@ -29,12 +29,40 @@ try:
             if not result:
                 print("Failed to request trust. You will likely be \
                     prompted for the code again in the coming weeks")
+                
+    start_date = date.today() + timedelta(-(date.today().day) + 1)
+    print("All events from: ", start_date)
+    print("Till today (inclusive):", date.today())
 
-    events = api.calendar.events()
+    calendar_service = api.calendar
+    events = calendar_service.get_events(from_dt = start_date, to_dt=datetime.now(), as_objs=True)
 
     for event in events:
-        print(event['title'])
-        
+        print("Дата: ", event.startDate[3], ".", event.startDate[2],". Имя: ", event.title, sep="")
+
+    event_count = dict()
+
+    for event in events:
+        if event.title in event_count:
+            new_value = event_count[event.title]
+            if event.duration == 120:
+                event_count[event.title] = new_value + 2
+            elif event.duration == 90:
+                event_count[event.title] = new_value + 1.5
+            else:
+                event_count[event.title] = new_value + 1
+        else:
+            if event.duration == 120:
+                event_count[event.title] = 2
+            elif event.duration == 90:
+                event_count[event.title] = 1.5
+            else:
+                event_count[event.title] = 1
+    
+    print()
+    for key, value in event_count.items():
+        print(value, ": ", key, sep="")
+    
 except PyiCloudFailedLoginException:
     print("Failed login to iCloud.")
 except PyiCloudNoDevicesException:
